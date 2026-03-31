@@ -4,38 +4,50 @@ import re
 import string
 import numpy as np
 
-st.set_page_config(page_title="Spam Classifier Pro", page_icon="🚀", layout="centered")
+st.set_page_config(page_title="SpamGuard AI", page_icon="🚀", layout="wide")
 
-# 🔥 STYLING (clean + pro)
+# 🔥 ADVANCED UI
 st.markdown("""
 <style>
 .stApp {
-    background: linear-gradient(135deg, #0f0f1a, #1a1a2e);
+    background: radial-gradient(circle at top, #1a1a2e, #0f0f1a);
     color: white;
 }
 
 .block-container {
+    padding: 30px;
+}
+
+.card {
     background: rgba(255,255,255,0.05);
-    padding: 40px;
+    padding: 25px;
     border-radius: 20px;
     backdrop-filter: blur(12px);
+    box-shadow: 0 0 25px rgba(0,0,0,0.3);
 }
 
-h1 {
-    text-align: center;
-    font-size: 40px;
+.title {
+    font-size: 42px;
+    font-weight: bold;
 }
 
-.tagline {
-    text-align: center;
+.subtitle {
     opacity: 0.7;
     margin-bottom: 20px;
 }
 
+.result-box {
+    font-size: 22px;
+    font-weight: bold;
+    padding: 15px;
+    border-radius: 12px;
+    margin-top: 15px;
+}
+
 .footer {
-    text-align: center;
-    margin-top: 30px;
-    opacity: 0.6;
+    text-align:center;
+    opacity:0.6;
+    margin-top:30px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -53,51 +65,73 @@ def clean_text(text):
     text = re.sub(f"[{string.punctuation}]", "", text)
     return text
 
-# UI
-st.markdown("<h1>📩 Spam Detector Pro</h1>", unsafe_allow_html=True)
-st.markdown("<p class='tagline'>AI-powered message intelligence</p>", unsafe_allow_html=True)
+# layout
+col1, col2 = st.columns([2,1])
 
-msg = st.text_area("Enter your message", height=120)
+with col1:
+    st.markdown('<div class="card">', unsafe_allow_html=True)
 
-# history
-if "history" not in st.session_state:
-    st.session_state.history = []
+    st.markdown('<div class="title">🚀 SpamGuard AI</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subtitle">Detect spam instantly using AI</div>', unsafe_allow_html=True)
 
-if st.button("🚀 Analyze"):
-    if msg.strip() == "":
-        st.warning("Enter a message first")
-    else:
-        cleaned = clean_text(msg)
-        vec = vectorizer.transform([cleaned])
+    msg = st.text_area("Enter message", height=150)
 
-        pred = model.predict(vec)[0]
-        prob = model.predict_proba(vec)[0]
+    if "history" not in st.session_state:
+        st.session_state.history = []
 
-        confidence = np.max(prob) * 100
-
-        result = "Spam" if pred == 1 else "Not Spam"
-
-        # display result
-        if pred == 1:
-            st.error(f"🚨 SPAM ({confidence:.2f}% confidence)")
+    if st.button("Analyze Message ⚡"):
+        if msg.strip() == "":
+            st.warning("Enter a message")
         else:
-            st.success(f"✅ NOT SPAM ({confidence:.2f}% confidence)")
+            cleaned = clean_text(msg)
+            vec = vectorizer.transform([cleaned])
 
-        # progress bar
-        st.progress(int(confidence))
+            pred = model.predict(vec)[0]
+            prob = model.predict_proba(vec)[0]
+            confidence = np.max(prob) * 100
 
-        # save history
-        st.session_state.history.append((msg, result, confidence))
+            result = "🚨 SPAM" if pred == 1 else "✅ NOT SPAM"
 
-# 📊 HISTORY SECTION
-if st.session_state.history:
-    st.markdown("### 🧾 Prediction History")
+            # result UI
+            if pred == 1:
+                st.markdown(f'<div class="result-box" style="background:#ff4b4b;">{result} ({confidence:.2f}%)</div>', unsafe_allow_html=True)
+            else:
+                st.markdown(f'<div class="result-box" style="background:#00c853;">{result} ({confidence:.2f}%)</div>', unsafe_allow_html=True)
 
-    for i, (m, r, c) in enumerate(reversed(st.session_state.history[-5:])):
-        st.write(f"**{i+1}.** {m}")
-        st.write(f"→ {r} ({c:.2f}%)")
-        st.markdown("---")
+            st.progress(int(confidence))
+
+            # insight
+            st.markdown("### 🧠 Insight")
+            if pred == 1:
+                st.write("This message contains patterns commonly found in spam (offers, urgency, rewards).")
+            else:
+                st.write("This message looks like normal human conversation.")
+
+            # save history
+            st.session_state.history.append((msg, result, confidence))
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# 📊 SIDE PANEL
+with col2:
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+
+    st.markdown("### 📊 Recent Checks")
+
+    if st.session_state.history:
+        for m, r, c in reversed(st.session_state.history[-5:]):
+            st.write(f"**{r}**")
+            st.write(f"{m[:40]}...")
+            st.write(f"{c:.1f}%")
+            st.markdown("---")
+    else:
+        st.write("No history yet")
+
+    st.markdown("### 🌍 Language Support")
+    st.write("Works best with English & Hinglish")
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # footer
-st.markdown("<div class='footer'>Built by Shahid 🚀</div>", unsafe_allow_html=True)
+st.markdown('<div class="footer">Built by Shahid 🚀</div>', unsafe_allow_html=True)
 
